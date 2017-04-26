@@ -1,11 +1,11 @@
 class PostController < ApplicationController
-
-  before_action :set_default_response_format
+   before_action :set_default_response_format
 
   def index
     @pageSize = params[:pageSize].to_i < 1 ? 1 : params[:pageSize].to_i
 
     @posts = Post.all.offset(params[:activePage].to_i*@pageSize).limit(@pageSize)
+    # @posts = Post.left_outer_joins(:comments).select('posts.*, comments.txt as comment').offset(params[:activePage].to_i*@pageSize).limit(@pageSize)
     @r = []
     @posts.each do |post|
       @r <<  {image: {
@@ -25,6 +25,12 @@ class PostController < ApplicationController
            }
     end
 
+    @comments = Comment.all
+    @com = []
+    @comments.each do |comment|
+      @com << {post_id: comment.post_id, comment: comment.txt }
+    end
+
     respond_to do |format|
       format.html
       format.json {render json:
@@ -33,7 +39,8 @@ class PostController < ApplicationController
             activePage: params[:activePage].to_i,
             pageSize: @pageSize,
             pageCount: Post.count % @pageSize > 0 ? (Post.count/@pageSize).to_i+1 : (Post.count/@pageSize).to_i
-          }
+          },
+          comments: @com
         }
       }
     end
@@ -97,6 +104,7 @@ protected
             updatedAt: post.metadata_updated_at,
             createdAt: post.metadata_created_at
            },
+           comment: [],
            txt: post.txt,
            id: post.id
          }
