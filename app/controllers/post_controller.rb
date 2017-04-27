@@ -25,11 +25,7 @@ class PostController < ApplicationController
            }
     end
 
-    @comments = Comment.all
-    @com = []
-    @comments.each do |comment|
-      @com << {post_id: comment.post_id, comment: comment.txt }
-    end
+    @comments = Comment.select('id, post_id, txt as comment')
 
     respond_to do |format|
       format.html
@@ -40,7 +36,7 @@ class PostController < ApplicationController
             pageSize: @pageSize,
             pageCount: Post.count % @pageSize > 0 ? (Post.count/@pageSize).to_i+1 : (Post.count/@pageSize).to_i
           },
-          comments: @com
+          comments: @comments
         }
       }
     end
@@ -49,10 +45,11 @@ class PostController < ApplicationController
   def show
 # byebug
     # @r = []
+    @comments = Comment.select('id, post_id, txt as comment').where('post_id = ?', params[:id])
     @post = Post.find(params[:id])
     respond_to do |format|
       format.html
-      format.json {render json: prepareData(@post)}
+      format.json {render json: prepareData(@post, @comments)}
     end
   end
 
@@ -63,7 +60,7 @@ class PostController < ApplicationController
     @post.save
     respond_to do |format|
       format.html
-      format.json {render json: prepareData(@post)}
+      format.json {render json: prepareData(@post, '')}
     end
   end
 
@@ -74,7 +71,7 @@ class PostController < ApplicationController
     @post.save
     respond_to do |format|
       format.html
-      format.json {render json: prepareData(@post)}
+      format.json {render json: prepareData(@post, '')}
     end
   end
 
@@ -86,12 +83,12 @@ class PostController < ApplicationController
     @post.save
     respond_to do |format|
       format.html
-      format.json {render json: prepareData(@post)}
+      format.json {render json: prepareData(@post, '')}
     end
   end
 
 protected
-  def prepareData post
+  def prepareData post, comment
     @r =  {image: {
             src: post.image_src,
             alt: post.image_alt,
@@ -104,7 +101,7 @@ protected
             updatedAt: post.metadata_updated_at,
             createdAt: post.metadata_created_at
            },
-           comment: [],
+           comment: comment,
            txt: post.txt,
            id: post.id
          }
