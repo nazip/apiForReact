@@ -5,8 +5,9 @@ class CommentController < ApplicationController
     @comment = Comment.new
     @comment.txt = params[:comment]
     @comment.post_id = params[:post_id]
+    @comment.phone = params[:phone]
     @comment.save
-    @comments = Comment.select('id, post_id, txt as comment').where('post_id = ?', params[:post_id])
+    @comments = Comment.select('id, post_id as postId, txt as comment, phone').where('post_id = ?', params[:post_id])
     respond_to do |format|
       format.html
       format.json {render json: @comments}

@@ -25,7 +25,7 @@ class PostController < ApplicationController
            }
     end
 
-    @comments = Comment.select('id, post_id as postId, txt as comment')
+    @comments = Comment.select('id, post_id as postId, txt as comment, phone')
 
     respond_to do |format|
       format.html
@@ -45,7 +45,7 @@ class PostController < ApplicationController
   def show
 # byebug
     # @r = []
-    @comments = Comment.select('id, post_id, txt as comment').where('post_id = ?', params[:id])
+    @comments = Comment.select('id, post_id, txt as comment, phone').where('post_id = ?', params[:id])
     @post = Post.find(params[:id])
     respond_to do |format|
       format.html
@@ -54,10 +54,15 @@ class PostController < ApplicationController
   end
 
   def update
+# byebug
     @post = Post.find(params[:id])
     @post.metadata_author = params[:item][:author]
     @post.txt = params[:item][:title]
     @post.save
+    @image = ImageUploader.new
+    @image.store!(params[:file])
+
+
     respond_to do |format|
       format.html
       format.json {render json: prepareData(@post, '')}
